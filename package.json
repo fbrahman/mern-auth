@@ -1,0 +1,22 @@
+{
+  "name": "auth-mern",
+  "version": "1.0.0",
+  "description": "authentication for mern apps",
+  "main": "server.js",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "cookie-parser": "^1.4.3",
+    "express": "^4.15.4",
+    "express-session": "^1.15.5",
+    "mongoose": "^4.11.9",
+    "passport": "^0.4.0",
+    "passport-github2": "^0.1.10"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Fahad Rahman",
+  "license": "ISC"
+}
