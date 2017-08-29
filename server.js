@@ -8,17 +8,27 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const passport = require('passport');
-const GitHubStrategy = require('passport-github2').Strategy;
+const flash = require('connect-flash');
 const githubAuth = require('./config/auth.js').github;
 
 //Database packages
 // =============================================================
 const mongoose = require('mongoose');
 
+// db configuration
+// =============================================================
+const configDB = require('./config/database.js');
+// const users = require('./models/Users');
+mongoose.connect(configDB.url)
+
 // Sets up the Express App
 // =============================================================
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// passport configuration
+// =============================================================
+require('./config/passport')(passport) //pass passport for configuration
 
 // Sets up the Express app to handle data parsing
 // =============================================================
@@ -44,64 +54,11 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(flash());
 
-// Requiring our models for syncing
+//Routes setup
 // =============================================================
-const users = require('./models/Users');
-let devCircle = 'mongodb://localhost/devCircle';
-
-mongoose.connect(devCircle, {
-    useMongoClient: true
-})
-
-//passport login check
-// =============================================================
-passport.use(new GitHubStrategy({
-            clientID: githubAuth.clientID,
-            clientSecret: githubAuth.clientSecret,
-            callbackURL: githubAuth.callbackURL
-    },
-    function (accessToken, refreshToken, profile, done) {
-        let user = new users(profile._json);
-        user.save((err, results) => {
-            if (err) {
-                console.log(err)
-            }
-            console.log(results);
-            console.log("user added to db")
-            return done(err, results);
-        })
-    }));
-
-
-passport.serializeUser(function (user, done) {
-    done(null, user);
-});
-
-passport.deserializeUser(function (obj, done) {
-    done(null, obj);
-});
-
-app.get('/auth/github',
-    passport.authenticate('github', {
-        scope: ['user:email']
-    }));
-
-app.get('/auth/github/callback',
-    passport.authenticate('github', {
-        failureRedirect: '/login'
-    }),
-    function (req, res) {
-        // Successful authentication, redirect home.
-        console.log("logged in");
-        //provide code
-        console.log('req.query', req.query);
-        //will return true if logged in
-        console.log(req.isAuthenticated())
-        //provide user profile
-        console.log(req.user)
-        res.end();
-    });
+require('./app/routes.js')(app, passport) //load our routes and pass in our app and fully configured passport
 
 // Starting our Express app
 // =============================================================
